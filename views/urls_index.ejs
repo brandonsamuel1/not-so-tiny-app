@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tiny App</title>
+</head>
+<body>
+
+  <% include partials/_header %>
+
+  <ol>
+    <% for(let key in urls) { %>
+      <li><%= key %> - <%= urls[key] %>
+        <form method="POST" action="/urls/<%=key%>/delete">
+          <input type="hidden" value="<%=key%>" />
+          <button type="submit">Delete</button>
+        </form>
+      </li>
+    <% } %>
+  </ol>
+  <p><a href="/urls/new">Shorten a new URL</a></p>
+
+</body>
+</html>
