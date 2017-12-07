@@ -8,12 +8,43 @@ app.use(bodyParser.urlencoded({extended: true}));
 //app.use = express();
 app.use(cookieParser());
 
+// Get currentUser
+app.use((req, res, next) => {
+
+  var cookieUser = req.cookies["newUser"];
+
+  res.locals.currentUser = users[cookieUser] || null;
+
+  next();
+
+});
+
+// app.use((req, res, next) => {
+//   app.locals.email = req.cookies["user_id"] ? users[req.cookies["user_id"]].email : null;
+//   next();
+// });
+
 app.set('view engine', 'ejs');
 
 var urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
+
+var users = {
+  "user1": {
+    id: "user1",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+ "user2": {
+    id: "user2",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+}
+
+
 
 function generateRandomString() {
   let alphabet = 'ABCDEFGHIJKLMNOPQRSTUWVXYZ';
@@ -24,6 +55,22 @@ function generateRandomString() {
     randomString += alphabet[index];
   }
   return randomString;
+}
+
+function findUserByEmail(email) {
+  for (let id in users) {
+    if (users[id].email === email) {
+      return users[id];
+    }
+  }
+}
+
+function checkUserLogin(email, password){
+  for(var k in users){
+    if(users[k].email === email && users[k].password === password){
+      return (users[k]);
+    }
+  }
 }
 
 app.get("/", (request, response) => {
@@ -38,17 +85,28 @@ app.get("/urls.json", (request, response) => {
   response.json(urlDatabase);
 });
 
+app.get("/registration", (request, response) => {
+  response.render("registration");
+});
+
+app.get("/login", (request, response) => {
+  response.render("login");
+});
+
 app.get("/urls", (request, response) => {
-  let username = request.body.username
-  let templateVars = {
-    urls: urlDatabase,
-    username: request.cookies["newUser"]
+
+  const templateVars = {
+    urls: urlDatabase
   };
+
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (request, response) => {
-  response.render("urls_new");
+   let templateVars = {
+    urls: urlDatabase
+  };
+  response.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (request, response) => {
@@ -60,10 +118,11 @@ app.get("/urls/:id", (request, response) => {
   //   username = request.cookies["username"]
   // }
 
+  console.log(request.currentUser);
+
   let templateVars = {
     shortURL: request.params.id,
-    longURL: urlDatabase[request.params.id],
-    username: request.cookies["newUser"]
+    longURL: urlDatabase[request.params.id]
   };
   // response.redirect(longURL);
   response.render("urls_show", templateVars);
@@ -97,15 +156,72 @@ app.post("/urls/:id", (request, response) => {
 })
 
 app.post("/login", (request, response) => {
-  response.cookie("newUser", request.body.username);
-  response.redirect("/urls");
+  //let userCookie = request.cookies["newUser"];
+  let userEmail = request.body.email;
+  let userPassword = request.body.password;
+  //1 condition to check that user enters both
+  if(!userEmail || !userPassword){
+    response.send("You forgot to enter your email and password!");
+  } else { //if they enter both then we check for username and password combination
+    //check for the user and password matches
+    var user = checkUserLogin(userEmail, userPassword);
+    if(user){ //if its true
+      response.cookie("newUser", user.id);
+      response.redirect("/urls")
+    } else { //username and password were wrong.
+      response.send("Email and password don't match!");
+    }
+  }
 });
 
 app.post("/logout", (request, response) => {
   response.clearCookie("newUser")
-  response.redirect("/urls");
-})
+  response.redirect("/login");
+});
+
+app.post("/registration", (request, response) => {
+  let id = generateRandomString();
+  let email = request.body.email;
+  let password = request.body.password;
+
+  if(email == '' || password == '') {
+    response.status(400).send('Bad Request! Please fill in email and password');
+    return;
+  }
+
+  for (let id in users) {
+    if (users[id].email === email) {
+      response.status(400).send('User already exists!');
+      return;
+    }
+  };
+
+  users[id] = {
+    id: id,
+    email: email,
+    password: password
+  };
+
+  response.cookie("newUser", id);
+  response.redirect("/urls")
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
