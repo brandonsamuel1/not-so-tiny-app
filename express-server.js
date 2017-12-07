@@ -27,8 +27,15 @@ app.use((req, res, next) => {
 app.set('view engine', 'ejs');
 
 var urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  "b2xVn2": {
+    longURL: "http://www.lighthouselabs.ca",
+    userID: "user1"
+  },
+
+  "9sm5xK": {
+    longURL: "http://www.google.com",
+    userID: "user2"
+  }
 };
 
 var users = {
@@ -57,6 +64,10 @@ function generateRandomString() {
   return randomString;
 }
 
+function findUser (userId) {
+  return users[userId];
+}
+
 function findUserByEmail(email) {
   for (let id in users) {
     if (users[id].email === email) {
@@ -74,7 +85,7 @@ function checkUserLogin(email, password){
 }
 
 app.get("/", (request, response) => {
-  response.end("Hello!!");
+  response.redirect("/registration");
 });
 
 app.get("/hello", (request, response) => {
@@ -93,6 +104,11 @@ app.get("/login", (request, response) => {
   response.render("login");
 });
 
+app.get("/error", (request, response) => {
+  console.log("about to render error page");
+  response.render("error");
+});
+
 app.get("/urls", (request, response) => {
 
   const templateVars = {
@@ -103,9 +119,17 @@ app.get("/urls", (request, response) => {
 });
 
 app.get("/urls/new", (request, response) => {
-   let templateVars = {
+  let user = findUser(request.cookies["newUser"])
+  let templateVars = {
     urls: urlDatabase
   };
+
+  if(!user) {
+    //response.send("You are not logged in.\nIf you don't have an account, click here to register. Otherwise, click her to log in!");
+    response.redirect("/error");
+    return;
+  }
+
   response.render("urls_new", templateVars);
 });
 
@@ -117,8 +141,6 @@ app.get("/urls/:id", (request, response) => {
   // if (request.cookies["username"]) {
   //   username = request.cookies["username"]
   // }
-
-  console.log(request.currentUser);
 
   let templateVars = {
     shortURL: request.params.id,
@@ -185,7 +207,7 @@ app.post("/registration", (request, response) => {
   let password = request.body.password;
 
   if(email == '' || password == '') {
-    response.status(400).send('Bad Request! Please fill in email and password');
+    response.status(400).send('Bad Request: Please fill in email and password');
     return;
   }
 
