@@ -6,7 +6,9 @@
 <body>
 
   <% include partials/_header %>
-
+  <!-- <% if(currentUser) { %>
+  <p>Logged in as: </p>
+  <%= currentUser.email %> -->
   <ul>
     <li><%= shortURL %> :
       <form method="POST" action="/urls/<%=shortURL%>">
@@ -15,6 +17,9 @@
        </form>
     </li>
   </ul>
+  <!-- <% } else {%>
+
+   <% } %> -->
 
 </body>
 </html>

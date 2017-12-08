@@ -7,18 +7,22 @@
 
 
   <% include partials/_header %>
-
+  <!-- <% if(currentUser) { %>
+  <p>Logged in as: </p>
+  <%= currentUser.email %> -->
   <ol>
     <% for(let key in urls) { %>
-      <li><%= key %> - <%= urls[key] %>
-        <form method="POST" action="/urls/<%=key%>/delete">
-          <input type="hidden" value="<%=key%>" />
+      <li><%= key %> - <%= urls[key].longURL %>
+        <form method="POST" action="/urls/<%=urls[key].uid%>/delete">
+          <input type="hidden" value="<%=urls[key].uid%>" />
           <button type="submit">Delete</button>
-          <a href="/urls/<%=key%>">Update</a>
+          <a href="/urls/<%=urls[key].uid%>">Update</a>
         </form>
       </li>
     <% } %>
   </ol>
+  <!-- <% } else { %>
+  <% } %> -->
   <p><a href="/urls/new">Shorten a new URL</a></p>
 
 </body>

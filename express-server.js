@@ -51,7 +51,19 @@ var users = {
   }
 }
 
-
+function getUrlsOfUser(userId) {
+  const urls = {};
+  for (key in urlDatabase) {
+    const entry = urlDatabase[key];
+    if (entry.userID === userId) {
+      urls[key] = {
+        userID: userId,
+        longURL: entry.longURL
+      }
+    }
+  }
+  return urls;
+}
 
 function generateRandomString() {
   let alphabet = 'ABCDEFGHIJKLMNOPQRSTUWVXYZ';
@@ -105,21 +117,23 @@ app.get("/login", (request, response) => {
 });
 
 app.get("/error", (request, response) => {
-  console.log("about to render error page");
   response.render("error");
 });
 
 app.get("/urls", (request, response) => {
-
+  //  console.log(urlDatabase, "data");
+  const uid = request.cookies.newUser; // TODO: Change to current user id from the cookie
+  const urls = getUrlsOfUser(uid);
   const templateVars = {
-    urls: urlDatabase
+    urls: urls
   };
 
   response.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (request, response) => {
-  let user = findUser(request.cookies["newUser"])
+  const uid = request.cookies["newUser"];
+  let user = findUser(uid);
   let templateVars = {
     urls: urlDatabase
   };
@@ -127,6 +141,7 @@ app.get("/urls/new", (request, response) => {
   if(!user) {
     //response.send("You are not logged in.\nIf you don't have an account, click here to register. Otherwise, click her to log in!");
     response.redirect("/error");
+    //return response.send('badddddd')
     return;
   }
 
@@ -160,7 +175,10 @@ app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
 
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = {
+    longURL,
+    userID: request.cookies["newUser"]
+  };
   response.redirect("/urls");
 });
 
