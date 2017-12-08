@@ -20,10 +20,6 @@ app.use((req, res, next) => {
 
 });
 
-// app.use((req, res, next) => {
-//   app.locals.email = req.cookies["user_id"] ? users[req.cookies["user_id"]].email : null;
-//   next();
-// });
 
 app.set('view engine', 'ejs');
 
@@ -94,10 +90,9 @@ function findUserByEmail(email) {
 function checkUserLogin(email, password){
   for(var k in users){
     if(users[k].email === email){
-      console.log(users[k])
-      console.log(password, users[k].password)
-      if(bcrypt.compareSync(password, users[k].password))
+      if(bcrypt.compareSync(password, users[k].password)) {
         return (users[k]);
+      }
     }
   }
 }
@@ -159,13 +154,6 @@ app.get("/urls/new", (request, response) => {
 });
 
 app.get("/urls/:id", (request, response) => {
-  //console.log(typeof request.params.id)
-
-  // let username = undefined
-
-  // if (request.cookies["username"]) {
-  //   username = request.cookies["username"]
-  // }
 
   let templateVars = {
     shortURL: request.params.id,
