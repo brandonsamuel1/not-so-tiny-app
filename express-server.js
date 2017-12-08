@@ -2,22 +2,20 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
-//app.use = express();
-app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['key1', 'key2']
+}))
 
 // Get currentUser
 app.use((req, res, next) => {
-
-  var cookieUser = req.cookies["newUser"];
-
+  var cookieUser = req.session.newUser;
   res.locals.currentUser = users[cookieUser] || null;
-
   next();
-
 });
 
 
@@ -52,9 +50,9 @@ var users = {
 
 function getUrlsOfUser(userId) {
   const urls = {};
-  for (key in urlDatabase) {
+  for(key in urlDatabase) {
     const entry = urlDatabase[key];
-    if (entry.userID === userId) {
+    if(entry.userID === userId) {
       urls[key] = {
         userID: userId,
         longURL: entry.longURL
@@ -68,20 +66,20 @@ function generateRandomString() {
   let alphabet = 'ABCDEFGHIJKLMNOPQRSTUWVXYZ';
   alphabet = alphabet + alphabet.toLowerCase() + '0123456789';
   let randomString = '';
-  for (var i = 0 ; i < 6; i++) {
+  for(var i = 0 ; i < 6; i++) {
     var index = Math.floor(Math.random() * alphabet.length);
     randomString += alphabet[index];
   }
   return randomString;
 }
 
-function findUser (userId) {
+function findUser(userId) {
   return users[userId];
 }
 
 function findUserByEmail(email) {
-  for (let id in users) {
-    if (users[id].email === email) {
+  for(let id in users) {
+    if(users[id].email === email) {
       return users[id];
     }
   }
@@ -97,12 +95,15 @@ function checkUserLogin(email, password){
   }
 }
 
+function addhttp(url) {
+  if(!/^(?:f|ht)tps?\:\/\//.test(url)) {
+    url = "http://" + url;
+  }
+  return url;
+}
+
 app.get("/", (request, response) => {
   response.redirect("/registration");
-});
-
-app.get("/hello", (request, response) => {
-  response.end("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.get("/urls.json", (request, response) => {
@@ -126,13 +127,11 @@ app.get("/error", (request, response) => {
 });
 
 app.get("/urls", (request, response) => {
-  //  console.log(urlDatabase, "data");
-  const uid = request.cookies.newUser; // TODO: Change to current user id from the cookie
+  const uid = request.session.newUser;
   let user = findUser(uid);
+
   if(!user) {
-    //response.send("You are not logged in.\nIf you don't have an account, click here to register. Otherwise, click her to log in!");
     response.redirect("/error");
-    //return response.send('badddddd')
     return;
   }
 
@@ -144,16 +143,14 @@ app.get("/urls", (request, response) => {
 });
 
 app.get("/urls/new", (request, response) => {
-  const uid = request.cookies["newUser"];
+  const uid = request.session.newUser;
   let user = findUser(uid);
   let templateVars = {
     urls: urlDatabase
   };
 
   if(!user) {
-    //response.send("You are not logged in.\nIf you don't have an account, click here to register. Otherwise, click her to log in!");
     response.redirect("/error");
-    //return response.send('badddddd')
     return;
   }
 
@@ -161,7 +158,7 @@ app.get("/urls/new", (request, response) => {
 });
 
 app.get("/urls/:id", (request, response) => {
-  const uid = request.cookies["newUser"];
+  const uid = request.session.newUser;
   let user = findUser(uid);
   let templateVars = {
     shortURL: request.params.id,
@@ -169,22 +166,23 @@ app.get("/urls/:id", (request, response) => {
   };
 
   if(!user) {
-    //response.send("You are not logged in.\nIf you don't have an account, click here to register. Otherwise, click her to log in!");
     response.redirect("/error");
-    //return response.send('badddddd')
     return;
   }
-  // response.redirect(longURL);
   response.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (request, response) => {
   let shortURL = request.params.shortURL;
-  const longURL = urlDatabase[shortURL].longURL;
-  const uid = request.cookies["newUser"];
-  let user = findUser(uid);
+  const url = urlDatabase[shortURL];
 
-  response.redirect(longURL);
+  if(!url) {
+    response.send("The shortURL you are trying to reach does not exist!");
+    return;
+  }
+  const longURL = url.longURL;
+
+  response.redirect(addhttp(longURL));
 });
 
 app.post("/urls", (request, response) => {
@@ -193,7 +191,7 @@ app.post("/urls", (request, response) => {
 
   urlDatabase[shortURL] = {
     longURL,
-    userID: request.cookies["newUser"]
+    userID: request.session.newUser
   };
   response.redirect("/urls");
 });
@@ -210,25 +208,22 @@ app.post("/urls/:id", (request, response) => {
 
   urlDatabase[shortURL].longURL = longURL
 
-  //console.log(urlDatabase[shortURL]);
   response.redirect("/urls");
 })
 
 app.post("/login", (request, response) => {
-  //let userCookie = request.cookies["newUser"];
   let userEmail = request.body.email;
   let userPassword = request.body.password;
 
-  //1 condition to check that user enters both
   if(!userEmail || !userPassword){
     response.send("You forgot to enter your email and password!");
     return;
   }
-   //if they enter both then we check for username and password combination
-  //check for the user and password matches
+
   var user = checkUserLogin(userEmail, userPassword);
-  if(user){ //if its true
-    response.cookie("newUser", user.id);
+
+  if(user) {
+    request.session.newUser = user.id;
     response.redirect("/urls")
     return;
   }
@@ -238,7 +233,7 @@ app.post("/login", (request, response) => {
 });
 
 app.post("/logout", (request, response) => {
-  response.clearCookie("newUser")
+  request.session = null;
   response.redirect("/login");
 });
 
@@ -267,7 +262,7 @@ app.post("/registration", (request, response) => {
     password: hashedPassword
   };
 
-  response.cookie("newUser", id);
+  request.session.newUser = id;
   response.redirect("/urls")
 });
 
