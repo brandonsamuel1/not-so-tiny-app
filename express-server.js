@@ -54,9 +54,6 @@ var users = {
   }
 }
 
-console.log(bcrypt.hashSync(users["user1"].password, 10))
-console.log(bcrypt.hashSync(users["user2"].password, 10))
-
 function getUrlsOfUser(userId) {
   const urls = {};
   for (key in urlDatabase) {
