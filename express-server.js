@@ -161,18 +161,29 @@ app.get("/urls/new", (request, response) => {
 });
 
 app.get("/urls/:id", (request, response) => {
-
+  const uid = request.cookies["newUser"];
+  let user = findUser(uid);
   let templateVars = {
     shortURL: request.params.id,
     longURL: urlDatabase[request.params.id]
   };
+
+  if(!user) {
+    //response.send("You are not logged in.\nIf you don't have an account, click here to register. Otherwise, click her to log in!");
+    response.redirect("/error");
+    //return response.send('badddddd')
+    return;
+  }
   // response.redirect(longURL);
   response.render("urls_show", templateVars);
 });
 
 app.get("/u/:shortURL", (request, response) => {
   let shortURL = request.params.shortURL;
-  const longURL = urlDatabase[shortURL];
+  const longURL = urlDatabase[shortURL].longURL;
+  const uid = request.cookies["newUser"];
+  let user = findUser(uid);
+
   response.redirect(longURL);
 });
 

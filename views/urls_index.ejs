@@ -12,7 +12,7 @@
   <%= currentUser.email %> -->
   <ol>
     <% for(let key in urls) { %>
-      <li><%= key %> - <%= urls[key].longURL %>
+      <li><a href="/u/<%=key%>"><%= key %></a> - <%= urls[key].longURL %>
         <form method="POST" action="/urls/<%=key%>/delete">
           <input type="hidden" value="<%=key%>" />
           <button type="submit">Delete</button>
