@@ -3,6 +3,7 @@ const app = express();
 const PORT = process.env.PORT || 8080; // default port 8080
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 
 app.use(bodyParser.urlencoded({extended: true}));
 //app.use = express();
@@ -42,14 +43,19 @@ var users = {
   "user1": {
     id: "user1",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    //password: "purple-monkey-dinosaur"
+    password: "$2a$10$4EMS7aLyrN71l9HV7igC9eG9pU1mJOzUPme6JzMsnWfyGX5AwcIWK"
   },
  "user2": {
     id: "user2",
     email: "user2@example.com",
-    password: "dishwasher-funk"
+    //password: "dishwasher-funk"
+    password: "$2a$10$HjnbCvHTr6UqRQy9g6Ec7.WTupfeBHRUFs4ciz//GzVE3/DH6FCGW"
   }
 }
+
+console.log(bcrypt.hashSync(users["user1"].password, 10))
+console.log(bcrypt.hashSync(users["user2"].password, 10))
 
 function getUrlsOfUser(userId) {
   const urls = {};
@@ -90,8 +96,11 @@ function findUserByEmail(email) {
 
 function checkUserLogin(email, password){
   for(var k in users){
-    if(users[k].email === email && users[k].password === password){
-      return (users[k]);
+    if(users[k].email === email){
+      console.log(users[k])
+      console.log(password, users[k].password)
+      if(bcrypt.compareSync(password, users[k].password))
+        return (users[k]);
     }
   }
 }
@@ -106,6 +115,10 @@ app.get("/hello", (request, response) => {
 
 app.get("/urls.json", (request, response) => {
   response.json(urlDatabase);
+});
+
+app.get("/users.json", (request, response) => {
+  response.json(users);
 });
 
 app.get("/registration", (request, response) => {
@@ -190,8 +203,11 @@ app.post("/urls/:id/delete", (request, response) => {
 
 app.post("/urls/:id", (request, response) => {
   let shortURL = request.params.id;
-  let longURL = urlDatabase[shortURL];
-  urlDatabase[shortURL] = request.body.newUrl;
+  let longURL = request.body.newUrl;
+
+  urlDatabase[shortURL].longURL = longURL
+
+  //console.log(urlDatabase[shortURL]);
   response.redirect("/urls");
 })
 
@@ -199,19 +215,23 @@ app.post("/login", (request, response) => {
   //let userCookie = request.cookies["newUser"];
   let userEmail = request.body.email;
   let userPassword = request.body.password;
+
   //1 condition to check that user enters both
   if(!userEmail || !userPassword){
     response.send("You forgot to enter your email and password!");
-  } else { //if they enter both then we check for username and password combination
-    //check for the user and password matches
-    var user = checkUserLogin(userEmail, userPassword);
-    if(user){ //if its true
-      response.cookie("newUser", user.id);
-      response.redirect("/urls")
-    } else { //username and password were wrong.
-      response.send("Email and password don't match!");
-    }
+    return;
   }
+   //if they enter both then we check for username and password combination
+  //check for the user and password matches
+  var user = checkUserLogin(userEmail, userPassword);
+  if(user){ //if its true
+    response.cookie("newUser", user.id);
+    response.redirect("/urls")
+    return;
+  }
+
+  response.send("Email and password don't match!");
+
 });
 
 app.post("/logout", (request, response) => {
@@ -236,10 +256,12 @@ app.post("/registration", (request, response) => {
     }
   };
 
+  let hashedPassword = bcrypt.hashSync(password, 10);
+
   users[id] = {
     id: id,
     email: email,
-    password: password
+    hashedPassword: hashedPassword
   };
 
   response.cookie("newUser", id);

@@ -13,10 +13,10 @@
   <ol>
     <% for(let key in urls) { %>
       <li><%= key %> - <%= urls[key].longURL %>
-        <form method="POST" action="/urls/<%=urls[key].uid%>/delete">
-          <input type="hidden" value="<%=urls[key].uid%>" />
+        <form method="POST" action="/urls/<%=key%>/delete">
+          <input type="hidden" value="<%=key%>" />
           <button type="submit">Delete</button>
-          <a href="/urls/<%=urls[key].uid%>">Update</a>
+          <a href="/urls/<%=key%>">Update</a>
         </form>
       </li>
     <% } %>
