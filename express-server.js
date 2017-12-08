@@ -128,11 +128,18 @@ app.get("/error", (request, response) => {
 app.get("/urls", (request, response) => {
   //  console.log(urlDatabase, "data");
   const uid = request.cookies.newUser; // TODO: Change to current user id from the cookie
+  let user = findUser(uid);
+  if(!user) {
+    //response.send("You are not logged in.\nIf you don't have an account, click here to register. Otherwise, click her to log in!");
+    response.redirect("/error");
+    //return response.send('badddddd')
+    return;
+  }
+
   const urls = getUrlsOfUser(uid);
   const templateVars = {
     urls: urls
   };
-
   response.render("urls_index", templateVars);
 });
 
@@ -246,7 +253,7 @@ app.post("/registration", (request, response) => {
   users[id] = {
     id: id,
     email: email,
-    hashedPassword: hashedPassword
+    password: hashedPassword
   };
 
   response.cookie("newUser", id);

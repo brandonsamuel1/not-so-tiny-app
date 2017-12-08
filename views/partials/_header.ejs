@@ -8,25 +8,15 @@
   <h1>Tiny App</h1>
 
   <% if(currentUser) { %>
-  <p>Logged in as: </p>
-  <%= currentUser.email %>
-  <form method="POST" action="/logout">
-    <button type="submit">Logout</button>
-  </form>
+    <p>Logged in as: </p>
+    <%= currentUser.email %>
+    <form method="POST" action="/logout">
+      <button type="submit">Logout</button>
+    </form>
+
   <% } else {%>
-
-  <p>You are not logged in. To view urls, <a href="/registration">click here</a> to register if you do not have an account, or <a href="/login">click here</a> to login!</p>
-  <!-- <form method="POST" action="/login">
-    <input type="text" name="username" placeholder="Username">
-    <button type="submit">Login</button>
-  </form> -->
-
+    <p>You are not logged in. To view urls, <a href="/registration">click here</a> to register if you do not have an account, or <a href="/login">click here</a> to login!</p>
    <% } %>
-
-  <!-- <form method="POST" action="/login">
-    <input type="text" name="username" placeholder="Username">
-    <button type="submit">Login</button>
-  </form> -->
 
 </body>
 </html>
