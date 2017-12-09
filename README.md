@@ -10,6 +10,7 @@ Tiny App is a full stack web application built with Node and Express that allows
 - bcrypt
 - body-parser
 - cookie-parser
+- cookie-session
 
 ## Getting Started
 
