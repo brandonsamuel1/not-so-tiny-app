@@ -188,6 +188,12 @@ app.get("/u/:shortURL", (request, response) => {
 app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
+  let user = findUser(uid);
+
+  if(!user) {
+    response.redirect("/error");
+    return;
+  }
 
   urlDatabase[shortURL] = {
     longURL,
@@ -198,6 +204,10 @@ app.post("/urls", (request, response) => {
 
 app.post("/urls/:id/delete", (request, response) => {
   let shortURL = request.params.id;
+
+  if(request.session.newUser !== urlDatabase[shortURL]["userID"]) {
+    return response.send("Excuse me, you do not own this URL!")
+  }
   delete urlDatabase[shortURL];
   response.redirect("/urls");
 });
