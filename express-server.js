@@ -126,6 +126,10 @@ app.get("/error", (request, response) => {
   response.render("error");
 });
 
+app.get("/urls/:id/delete", (request, response) => {
+  response.send("Excuse me, you do not own this URL")
+})
+
 app.get("/urls", (request, response) => {
   const uid = request.session.newUser;
   let user = findUser(uid);
@@ -142,6 +146,8 @@ app.get("/urls", (request, response) => {
   response.render("urls_index", templateVars);
 });
 
+
+
 app.get("/urls/new", (request, response) => {
   const uid = request.session.newUser;
   let user = findUser(uid);
@@ -153,9 +159,10 @@ app.get("/urls/new", (request, response) => {
     response.redirect("/error");
     return;
   }
-
   response.render("urls_new", templateVars);
 });
+
+
 
 app.get("/urls/:id", (request, response) => {
   const uid = request.session.newUser;
@@ -172,6 +179,8 @@ app.get("/urls/:id", (request, response) => {
   response.render("urls_show", templateVars);
 });
 
+
+
 app.get("/u/:shortURL", (request, response) => {
   let shortURL = request.params.shortURL;
   const url = urlDatabase[shortURL];
@@ -184,6 +193,8 @@ app.get("/u/:shortURL", (request, response) => {
 
   response.redirect(addhttp(longURL));
 });
+
+
 
 app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
@@ -203,6 +214,8 @@ app.post("/urls", (request, response) => {
   response.redirect("/urls");
 });
 
+
+
 app.post("/urls/:id/delete", (request, response) => {
   let shortURL = request.params.id;
 
@@ -212,6 +225,8 @@ app.post("/urls/:id/delete", (request, response) => {
   delete urlDatabase[shortURL];
   response.redirect("/urls");
 });
+
+
 
 app.post("/urls/:id", (request, response) => {
   let shortURL = request.params.id;
@@ -223,6 +238,8 @@ app.post("/urls/:id", (request, response) => {
 
   response.redirect("/urls");
 })
+
+
 
 app.post("/login", (request, response) => {
   let userEmail = request.body.email;
@@ -242,13 +259,16 @@ app.post("/login", (request, response) => {
   }
 
   response.send("Email and password don't match!");
-
 });
+
+
 
 app.post("/logout", (request, response) => {
   request.session = null;
   response.redirect("/login");
 });
+
+
 
 app.post("/registration", (request, response) => {
   let id = generateRandomString();
