@@ -188,6 +188,7 @@ app.get("/u/:shortURL", (request, response) => {
 app.post("/urls", (request, response) => {
   let shortURL = generateRandomString();
   let longURL = request.body.longURL;
+  const uid = request.session.newUser;
   let user = findUser(uid);
 
   if(!user) {
