@@ -130,10 +130,12 @@ app.get("/urls/:id/delete", (request, response) => {
   response.send("Excuse me, you do not own this URL")
 })
 
+// Front page of Tiny App when user logs in to see all their urls
+
 app.get("/urls", (request, response) => {
   const uid = request.session.newUser;
   let user = findUser(uid);
-
+// Checks to see if user is logged in before showing urls page
   if(!user) {
     response.redirect("/error");
     return;
@@ -154,7 +156,7 @@ app.get("/urls/new", (request, response) => {
   let templateVars = {
     urls: urlDatabase
   };
-
+// Checks to see if user is logged in before being able to create a new url
   if(!user) {
     response.redirect("/error");
     return;
@@ -171,7 +173,7 @@ app.get("/urls/:id", (request, response) => {
     shortURL: request.params.id,
     longURL: urlDatabase[request.params.id]
   };
-
+// Checks to see if user is logged in before update that url
   if(!user) {
     response.redirect("/error");
     return;
@@ -180,17 +182,18 @@ app.get("/urls/:id", (request, response) => {
 });
 
 
-
+// Redirect page to the long url
 app.get("/u/:shortURL", (request, response) => {
   let shortURL = request.params.shortURL;
   const url = urlDatabase[shortURL];
-
+// Checks to see if url is a valid url
   if(!url) {
     response.send("The shortURL you are trying to reach does not exist!");
     return;
   }
   const longURL = url.longURL;
-
+// If user did not include  http:// when creating a short url, this function will add append it to the url
+// so the url can redirect without issues
   response.redirect(addhttp(longURL));
 });
 
@@ -218,7 +221,7 @@ app.post("/urls", (request, response) => {
 
 app.post("/urls/:id/delete", (request, response) => {
   let shortURL = request.params.id;
-
+// Checks database to see if the user owns that url they are trying to delete
   if(request.session.newUser !== urlDatabase[shortURL]["userID"]) {
     return response.send("Excuse me, you do not own this URL!")
   }
@@ -231,6 +234,7 @@ app.post("/urls/:id/delete", (request, response) => {
 app.post("/urls/:id", (request, response) => {
   let shortURL = request.params.id;
   let longURL = request.body.newUrl;
+// Checks to see if the user owns the url they are trying to update
   if(request.session.newUser !== urlDatabase[shortURL]["userID"]) {
     return response.send("Excuse me, you do not own this URL!")
   }
@@ -244,7 +248,7 @@ app.post("/urls/:id", (request, response) => {
 app.post("/login", (request, response) => {
   let userEmail = request.body.email;
   let userPassword = request.body.password;
-
+// Checks to see if there is something in the textbox during log in. Also checks if email and password match
   if(!userEmail || !userPassword){
     response.send("You forgot to enter your email and password!");
     return;
@@ -274,19 +278,19 @@ app.post("/registration", (request, response) => {
   let id = generateRandomString();
   let email = request.body.email;
   let password = request.body.password;
-
+// Checks to see if any inputs are present
   if(email == '' || password == '') {
     response.status(400).send('Bad Request: Please fill in email and password');
     return;
   }
-
+// Checks to see if an email exists already in the "database"
   for (let id in users) {
     if (users[id].email === email) {
       response.status(400).send('User already exists!');
       return;
     }
   };
-
+// Gives users a secured password
   let hashedPassword = bcrypt.hashSync(password, 10);
 
   users[id] = {
