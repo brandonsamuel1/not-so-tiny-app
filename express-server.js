@@ -205,7 +205,9 @@ app.post("/urls/:id/delete", (request, response) => {
 app.post("/urls/:id", (request, response) => {
   let shortURL = request.params.id;
   let longURL = request.body.newUrl;
-
+  if(request.session.newUser !== urlDatabase[shortURL]["userID"]) {
+    return response.send("Excuse me, you do not own this URL!")
+  }
   urlDatabase[shortURL].longURL = longURL
 
   response.redirect("/urls");
