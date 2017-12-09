@@ -7,9 +7,7 @@
 
 
   <% include partials/_header %>
-  <!-- <% if(currentUser) { %>
-  <p>Logged in as: </p>
-  <%= currentUser.email %> -->
+
   <ol>
     <% for(let key in urls) { %>
       <li><a href="/u/<%=key%>"><%= key %></a> - <%= urls[key].longURL %>
@@ -21,8 +19,7 @@
       </li>
     <% } %>
   </ol>
-  <!-- <% } else { %>
-  <% } %> -->
+
   <p><a href="/urls/new">Shorten a new URL</a></p>
 
 </body>
