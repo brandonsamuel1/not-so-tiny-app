@@ -20,3 +20,7 @@ Tiny App is a full stack web application built with Node and Express that allows
 
 - "register" page is under "/registration"
 
+## Screenshots
+
+!["Screenshot for Login Page"](https://github.com/brandonsamuel1/not-so-tiny-app/blob/master/docs/login-page.png?raw=true)
+!["Screenshot for Login Page"](https://github.com/brandonsamuel1/not-so-tiny-app/blob/master/docs/urls-page.png?raw=true)
